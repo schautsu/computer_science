@@ -160,7 +160,7 @@ void verificarPalavra(const char *A, const char *Q, const char q0, const char *F
 
     /* Realiza verificações com cada caracter da palavra W fornecida */
     for (indexW = 0; indexW < strlen(W); ++indexW) {
-        printf("%c", Qcurrent); /* Print: estado atual */
+        printf("%c (%c)", Qcurrent, W[indexW]); /* Print: estado atual */
 
         /* Verifica em qual índice Q está o estado atual */
         for (indexQ = 0; indexQ < strlen(Q); ++indexQ) {
