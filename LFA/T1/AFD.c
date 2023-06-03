@@ -1,25 +1,29 @@
 /*
     Linguagens Formais e Autômatos (LFA)
-    Aluno: Vinícius Alves Schautz (viniciusaschautz@gmail.com)
+    Year: 2023
+    Author: Vinícius Alves Schautz (viniciusaschautz@gmail.com)
 */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+/* caracter que representa estado ausente */
+#define CHAR_TRAVOU '-'
 
 /* Protótipos de funções */
 int escolhaPrincipal(void);
 
 void inserirAFD(char *, char *, char*, char *, char [][10]);
 void leiaDelta(char [][10], const char *, const char *);
-void split(const char *, char *, const char);
 
 void verificarPalavra(const char *, const char *, const char, const char *, char [][10]);
-void leiaPalavra(char *, const char *);
+void leiaPalavra(char *, const char *, const char *, char [][10]);
 
+void imprimeTabelaQ(const char *, const char *, char [][10]);
+void split(const char *, char *, const char);
+bool isDeltaValido(const char, const char *);
 bool isEstadoValido(const char, const char *);
 bool isElementosValidos(const char *, const char *);
-
 void pause(void);
 
 int main()
@@ -30,7 +34,7 @@ int main()
     int option;
     do {
         option = escolhaPrincipal();
-
+        /* Menu */
         switch (option) {
             case 1:
                 inserirAFD(A, Q, &q0, F, Delta);
@@ -51,7 +55,7 @@ int main()
 
     return 0;
 }
-
+/* Menu de opções */
 int escolhaPrincipal()
 {
     int option;
@@ -71,7 +75,7 @@ void inserirAFD(char *A, char *Q, char *q0, char *F, char Delta[][10])
     getchar();
 
     char str[30];
-    bool valid;
+    bool valid; /* Validade das entradas */
 
     puts("[ATENCAO] separados por virgula, sem espaços!\n");
 
@@ -124,24 +128,11 @@ void leiaDelta(char Delta[][10], const char *A, const char *Q)
                 printf("Delta(%c,%c): ", Q[indexQ], A[indexA]);
                 scanf(" %c", &Delta[indexQ][indexA]);
 
-                if (!(valid = isEstadoValido(Delta[indexQ][indexA], Q)))
+                if (!(valid = isDeltaValido(Delta[indexQ][indexA], Q)))
                     printf("[ERRO] Estado invalido!\n");
             } while (!valid);
         }
     }
-}
-/* Retira vírgulas de um array */
-void split(const char *src, char *dest, const char avoid)
-{
-    unsigned i = 0, j = 0;
-
-    while (i < strlen(src)-1) {
-        if (src[i] != avoid)
-            dest[j++] = src[i];
-            
-        ++i;
-    }
-    dest[j] = '\0';
 }
 
 /* Leitura e verificação de uma palavra fornecida */
@@ -153,38 +144,45 @@ void verificarPalavra(const char *A, const char *Q, const char q0, const char *F
     char Qcurrent, W[20];  
     bool accepted;  
 
-    leiaPalavra(W, A); /* Leitura da palavra a ser verificada */
+    leiaPalavra(W, A, Q, Delta); /* Leitura da palavra a ser verificada */
 
     printf("\nTransicao de estados\n");
     Qcurrent = q0; /* O estado atual inicia-se com q0 (estado inicial) */
 
     /* Realiza verificações com cada caracter da palavra W fornecida */
     for (indexW = 0; indexW < strlen(W); ++indexW) {
-        printf("%c (%c)", Qcurrent, W[indexW]); /* Print: estado atual */
+
+        printf("%c", Qcurrent); /* Print: estado atual */
+
+        /* Estado de Delta não definido */
+        if (Qcurrent == CHAR_TRAVOU) {
+            printf("\n\n[ERRO] A maquina travou!\n");
+            goto travou;
+        }
 
         /* Verifica em qual índice Q está o estado atual */
         for (indexQ = 0; indexQ < strlen(Q); ++indexQ) {
 
-            if (Q[indexQ] == Qcurrent) {
-                /* Verifica em qual índice A está o caracter da palavra */
-                for (indexA = 0; indexA < strlen(A); ++indexA) {
-                    
-                    if (A[indexA] == W[indexW]) {
-                        /* O estado atual passa a ser a intersecção (Q,A) */
-                        Qcurrent = Delta[indexQ][indexA];
-
-                        goto nextW; /* Sai dos loops */
-                    }
-                }
-            }
+            if (Q[indexQ] == Qcurrent)
+                break;
         }
-        nextW: printf("-> "); /* Print: caminho do estado atual */
+        /* Verifica em qual índice A está o caracter da palavra */
+        for (indexA = 0; indexA < strlen(A); ++indexA) {
+            
+            if (A[indexA] == W[indexW])
+                break;
+        }
+        /* O estado atual passa a ser a intersecção (Q,A) */
+        Qcurrent = Delta[indexQ][indexA];
+
+        printf("-> "); /* Print: caminho do estado atual */ 
     }
     printf("%c\n\n", Qcurrent); /* Print: estado atual (final) */
 
-    accepted = false;
     /* Verifica se o estado final é um estado de aceitação */
+    accepted = false;
     for (indexF = 0; indexF < strlen(F); ++indexF) {
+
         if (Qcurrent == F[indexF]) {
             accepted = true;
             break;
@@ -193,15 +191,17 @@ void verificarPalavra(const char *A, const char *Q, const char q0, const char *F
     /* Saída */
     accepted ? printf("[AVISO] Palavra aceita!\n") : printf("[AVISO] Palavra rejeitada!\n");
 
+    travou:
     pause();
 }
 /* Leitura de uma palavra W */
-void leiaPalavra(char *W, const char *A)
+void leiaPalavra(char *W, const char *A, const char *Q, char Delta[][10])
 {
     bool valid;
     /* Leitura da palavra */
     do {
         system("clear");
+        imprimeTabelaQ(A, Q, Delta);
 
         printf("Entre com a palavra a ser verificada:\n\n--> ");
         fgets(W, 20, stdin);
@@ -216,6 +216,60 @@ void leiaPalavra(char *W, const char *A)
     /* Repete quando a palavra possui algum símbolo inexistente no alfabeto */
 }
 
+/* Impressão da tabela de transição */
+void imprimeTabelaQ(const char *A, const char *Q, char Delta[][10])
+{
+    unsigned indexA, indexQ;
+    unsigned lenA = strlen(A), lenQ = strlen(Q);
+
+    printf("Tabela de transicao\n    ");
+
+    /* Imprime o alfabeto */
+    for (indexA = 0; indexA < lenA; ++indexA) {
+        printf("%c ", A[indexA]);
+    }
+    puts("");
+    /* Linha de divisão */
+    for (indexA = 0; indexA < (lenA << 1) + 3; ++indexA) {
+        printf("_");
+    }
+    /* Imprime os estados e a linha de divisão */
+    for (indexQ = 0; indexQ < lenQ; ++indexQ) {
+        printf("\n%c | ", Q[indexQ]);
+        /* Imprime a transição de estados */
+        for (indexA = 0; indexA < lenA; ++indexA)
+            printf("%c ", Delta[indexQ][indexA]);
+    }
+    puts("\n");
+}
+/* Retira vírgulas de um array */
+void split(const char *src, char *dest, const char avoid)
+{
+    unsigned i = 0, j = 0;
+
+    while (i < strlen(src)-1) {
+        if (src[i] != avoid)
+            dest[j++] = src[i];
+            
+        ++i;
+    }
+    dest[j] = '\0';
+}
+/* Verifica se dado elemento de Delta está contido no conjunto Q ou é CHAR_TRAVOU */
+bool isDeltaValido(const char dElem, const char *Q)
+{
+    unsigned indexQ;
+
+    if (dElem == CHAR_TRAVOU)
+        return true;
+        
+    for (indexQ = 0; indexQ < strlen(Q); ++indexQ) {
+        if (dElem == Q[indexQ]) {
+            return true;
+        }
+    }
+    return false;
+}
 /* Verifica se dado elemento está contido em um conjunto X */
 bool isEstadoValido(const char elem, const char *setX)
 {
@@ -248,7 +302,6 @@ bool isElementosValidos(const char *setX, const char *setY)
     }
     return true;
 }
-
 /* Pausa a exibição */
 void pause()
 {
