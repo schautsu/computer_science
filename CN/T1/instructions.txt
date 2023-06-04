@@ -1,19 +1,19 @@
 1) Inversão de Matrizes pelo método de Jordan
-- Entrada:
+Entrada:
 - ordem da matriz (Máximo 10)
 - Matriz
-- Saída
+Saída:
 - Resultados de cada passo com 1 casa decimal
 - Matriz inversa
 - Tempo de execução
 
 2) Resolução de sistemas lineares pelo método de Jacobi
-- Entrada:
+Entrada:
 - ordem da matriz (máximo 10) dos coeficientes das incógnitas
 - Sistema linear
 - Precisão
 - Solução inicial
-- Saída
+Saída:
 - Resultados de cada passo (sistema e erro) com 7 casas decimais
 - Solução
 - Tempo de execução
