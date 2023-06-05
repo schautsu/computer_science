@@ -109,7 +109,7 @@ unsigned mainOption()
         system("clear");
         printf("Digite uma opcao:\n\n[1] Inserir um novo bloco\n[2] Remover um bloco existente\n[3] Encerrar\n\n--> ");
     }
-    while ((!scanf("%u", &option) && getchar()) || (option < 1 || option > 5));
+    while ((!scanf("%u", &option) && getchar()) || (option < 1 || option > 3));
 
     return option;
 }
