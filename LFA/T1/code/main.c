@@ -1,7 +1,6 @@
 /*
-    Linguagens Formais e Autômatos (LFA)
-    Year: 2023
     Author: Vinícius Alves Schautz (viniciusaschautz@gmail.com)
+    Year: 2023
 */
 #include <stdio.h>
 #include <stdlib.h>
